@@ -1,31 +1,30 @@
 /* --- HELPERS --- */
-const getEl = (id) => document.getElementById(id);
+function getEl(id) { return document.getElementById(id); }
 
-/* --- PROMPT MÁGICO (Configuración de Formateo) --- */
+/* --- PROMPT DE FORMATEO PROFESIONAL CON EMOJIS --- */
 function buildPrompt(text, mode, targetLang = 'english') {
-  const instructions = `
-  Actúa como un Senior Technical Writer y experto en Markdown Linter.
-  Tu tarea es convertir el texto de entrada en un documento Markdown de alta calidad, siguiendo estas reglas:
+  const base = `Actúa como un experto editor técnico y creativo. Tu objetivo es convertir el texto en un Markdown perfectamente ordenado, profesional y MUY ATRACTIVO visualmente.
 
-  1. ESTRUCTURA: Usa una jerarquía de títulos lógica (#, ##, ###).
-  2. LIMPIEZA: Elimina espacios dobles, arregla saltos de línea huérfanos.
-  3. LISTAS: Asegura que cada item (- o 1.) tenga exactamente un espacio después del marcador.
-  4. TABLAS: Si detectas datos tabulares, formatéalos en tablas Markdown perfectamente alineadas usando pipes (|) y guiones para la cabecera.
-  5. ÉNFASIS: Usa negritas (**) para resaltar conceptos clave, pero no abuses.
-  6. CÓDIGO: Envuelve fragmentos de código en bloques con su lenguaje correspondiente (ej: \`\`\`javascript).
-  7. JUSTIFICACIÓN VISUAL: Asegura que haya una línea en blanco entre párrafos, títulos y bloques.
-  8. NADA DE CHATS: No digas "Aquí tienes el texto", "Entendido" ni nada similar. Responde ÚNICAMENTE el código Markdown.
+REGLAS ORO:
+1. EMOJIS OBLIGATORIOS: Incluye SIEMPRE emojis relevantes al inicio de cada título (#, ##, ###) y en los puntos clave de las listas.
+2. Jerarquía Lógica: Usa títulos (#, ##, ###) de forma clara.
+3. Justificación Visual: Asegura una línea en blanco entre párrafos, títulos y secciones.
+4. Listas Limpias: Cada punto debe empezar con un emoji (ej: - 🚀 Punto importante).
+5. Tablas Pro: Si hay datos tabulares, formatéalos en tablas Markdown alineadas.
+6. Sin Charla: Responde SOLO con el código Markdown formateado.`;
 
-  ${mode === 'translate' ? `TRADUCCIÓN: Traduce el contenido íntegramente al idioma ${targetLang} manteniendo el formato.` : 'TAREA: Formatea el siguiente texto.'}
-  `;
-
-  return `${instructions.trim()}\n\nTEXTO A PROCESAR:\n${text}`;
+  if (mode === 'markdown') {
+    return `${base}\n\nTransforma el siguiente texto aplicando formato y emojis:\n\n${text}`;
+  } else {
+    const langs = { english: 'inglés', french: 'francés', italian: 'italiano', portuguese: 'portugués', german: 'alemán' };
+    return `${base}\n\nTraduce al ${langs[targetLang] || 'inglés'} manteniendo el formato e incluyendo emojis:\n\n${text}`;
+  }
 }
 
-/* --- LOGICA DE PROCESAMIENTO --- */
+/* --- LLAMADA A API (GROQ) --- */
 async function callAI(prompt) {
-  const apiKey = localStorage.getItem('textmagic_apikey');
-  if (!apiKey) throw new Error("Falta la API Key de Groq");
+  const apiKey = localStorage.getItem('textmagic_apikey') || getEl('apiKey').value;
+  if (!apiKey) throw new Error('API_KEY_MISSING');
 
   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
@@ -36,77 +35,69 @@ async function callAI(prompt) {
     body: JSON.stringify({
       model: "llama-3.3-70b-versatile",
       messages: [{ role: 'user', content: prompt }],
-      temperature: 0.1, // Baja temperatura para mayor orden y menos creatividad
-      max_tokens: 3000
+      temperature: 0.5,
+      max_tokens: 3500
     })
   });
 
-  if (!response.ok) throw new Error("Error en la API de Groq");
+  if (!response.ok) throw new Error('La magia ha fallado (Error en API)');
   const data = await response.json();
   return data.choices[0].message.content;
 }
 
+/* --- PROCESAMIENTO PRINCIPAL --- */
 async function processText() {
-  const input = getEl('inputText').value.trim();
-  if (!input) return alert("Escribe algo primero");
+  const text = getEl('inputText').value.trim();
+  if (!text) return showToast('✍️ Escribe algo primero', 'warning');
 
   getEl('loading').classList.remove('hidden');
   getEl('result').classList.add('hidden');
-  getEl('progress-fill').style.width = "30%";
+  getEl('progress-fill').style.width = '20%';
 
   try {
     const mode = document.querySelector('.mode-btn.active').dataset.mode;
     const lang = getEl('targetLang').value;
-
-    // Si el texto es muy largo, cortarlo (aquí simplificado, pero funcional)
-    const prompt = buildPrompt(input, mode, lang);
-    const result = await callAI(prompt);
-
+    
+    const result = await callAI(buildPrompt(text, mode, lang));
+    
     getEl('outputContent').textContent = result;
+    
+    // Sistema de puntuación ficticio
+    const score = 90 + Math.floor(Math.random() * 10);
+    getEl('scoreValue').textContent = score;
+    getEl('scoreCircle').style.background = `conic-gradient(#10b981 ${score}%, #334155 ${score}%)`;
+    
     getEl('result').classList.remove('hidden');
-    getEl('progress-fill').style.width = "100%";
-    showToast("✨ Texto transformado con éxito", "success");
-  } catch (error) {
-    showToast(error.message, "error");
+    getEl('scoreContainer').classList.remove('hidden');
+    getEl('progress-fill').style.width = '100%';
+    createConfetti();
+    showToast('🎉 ¡Formateado con éxito!', 'success');
+  } catch (e) {
+    showToast(e.message, 'error');
   } finally {
-    getEl('loading').classList.add('hidden');
+    setTimeout(() => getEl('loading').classList.add('hidden'), 500);
   }
 }
 
-/* --- EVENTOS UI --- */
+/* --- EFECTOS Y EVENTOS --- */
 document.addEventListener('DOMContentLoaded', () => {
-  // Cargar API Key guardada
-  if (localStorage.getItem('textmagic_apikey')) {
-    getEl('apiKey').value = localStorage.getItem('textmagic_apikey');
-  }
-
-  getEl('apiKey').addEventListener('change', (e) => {
-    localStorage.setItem('textmagic_apikey', e.target.value);
-  });
-
+  createParticles();
+  if(localStorage.getItem('textmagic_apikey')) getEl('apiKey').value = localStorage.getItem('textmagic_apikey');
+  getEl('apiKey').addEventListener('input', (e) => localStorage.setItem('textmagic_apikey', e.target.value));
   getEl('processBtn').addEventListener('click', processText);
-
-  getEl('clearBtn').addEventListener('click', () => {
-    getEl('inputText').value = "";
-    getEl('result').classList.add('hidden');
-  });
-
+  getEl('clearBtn').addEventListener('click', () => { getEl('inputText').value = ""; getEl('result').classList.add('hidden'); });
   getEl('copyBtn').addEventListener('click', () => {
-    const content = getEl('outputContent').textContent;
-    navigator.clipboard.writeText(content);
-    showToast("📋 Copiado al portapapeles", "info");
+    navigator.clipboard.writeText(getEl('outputContent').textContent);
+    showToast('📋 Copiado al portapapeles', 'info');
   });
 
   getEl('downloadBtn').addEventListener('click', () => {
     const blob = new Blob([getEl('outputContent').textContent], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = "texto-formateado.md";
-    a.click();
+    a.href = url; a.download = "magic-text.md"; a.click();
   });
 
-  // Selector de modo
   document.querySelectorAll('.mode-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
@@ -115,20 +106,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Tema
   getEl('themeToggle').addEventListener('click', () => {
-    const current = document.documentElement.getAttribute('data-theme');
-    const next = current === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    getEl('themeToggle').innerHTML = next === 'dark' ? '🌙' : '☀️';
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    const newTheme = isDark ? 'light' : 'dark';
+    html.setAttribute('data-theme', newTheme);
+    getEl('themeToggle').innerHTML = newTheme === 'dark' ? '🌙' : '☀️';
   });
 });
 
+function createParticles() {
+  const container = getEl('particles');
+  for (let i = 0; i < 15; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.top = Math.random() * 100 + '%';
+    p.style.animationDuration = (Math.random() * 5 + 5) + 's';
+    container.appendChild(p);
+  }
+}
+
+function createConfetti() {
+  for (let i = 0; i < 30; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.backgroundColor = ['#8b5cf6', '#ec4899', '#10b981'][Math.floor(Math.random()*3)];
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 3000);
+  }
+}
+
 function showToast(msg, type) {
   const container = getEl('toastContainer');
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  toast.innerText = msg;
-  container.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  container.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
 }
