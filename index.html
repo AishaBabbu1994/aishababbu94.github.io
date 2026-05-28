@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>✨ TextMagic AI 🔮</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="particles"></div>
+
+  <header class="header">
+    <div class="logo">
+      <span class="shimmer">✨</span>
+      <h1>TextMagic AI</h1>
+      <span class="shimmer">🔮</span>
+    </div>
+    <p class="subtitle">Transforma tu texto en Markdown 📝 o tradúcelo 🌍 • Soporta textos largos ✂️</p>
+  </header>
+
+  <main class="container">
+    <section class="card config-card">
+      <h2>⚙️ Configuración</h2>
+
+      <div class="theme-toggle">
+        <label for="themeSwitch">🌙 Modo Oscuro</label>
+        <button id="themeToggle" class="btn-icon" aria-label="Cambiar tema">
+          <span class="emoji">🌙</span>
+        </button>
+      </div>
+
+      <div class="api-section">
+        <label for="apiKey">🔑 API Key de Groq</label>
+        <input
+          type="password"
+          id="apiKey"
+          placeholder="gsk_••••••••••••••••"
+          autocomplete="off"
+        />
+        <small class="hint">💡 Tu clave se guarda localmente • Nunca se envía a otros servidores</small>
+      </div>
+    </section>
+
+    <section class="card input-card">
+      <h2>📥 Tu Texto</h2>
+
+      <div class="mode-selector">
+        <button class="mode-btn active" data-mode="markdown">
+          <span class="emoji">📝</span> Markdown
+        </button>
+        <button class="mode-btn" data-mode="translate">
+          <span class="emoji">🌍</span> Traducir
+        </button>
+      </div>
+
+      <div id="translateOptions" class="translate-options hidden">
+        <label for="targetLang">Idioma destino:</label>
+        <select id="targetLang">
+          <option value="english">🇬🇧 English</option>
+          <option value="french">🇫🇷 Français</option>
+          <option value="italian">🇮🇹 Italiano</option>
+          <option value="portuguese">🇵🇹 Português</option>
+          <option value="german">🇩🇪 Deutsch</option>
+        </select>
+      </div>
+
+      <div
+        id="dropZone"
+        class="drop-zone"
+        tabindex="0"
+        role="button"
+        aria-label="Arrastra un archivo .txt aquí o haz clic para seleccionar"
+      >
+        <span class="emoji big">📁</span>
+        <p>Arrastra un archivo .txt aquí</p>
+        <p class="hint">o haz clic para explorar • Soporta archivos grandes ✂️</p>
+        <input type="file" id="fileInput" accept=".txt" hidden />
+      </div>
+
+      <textarea
+        id="inputText"
+        placeholder="Escribe o pega tu texto aquí... ✍️ • Textos largos se procesan automáticamente ✂️"
+        rows="8"
+      ></textarea>
+
+      <div class="actions">
+        <button id="processBtn" class="btn-primary">
+          <span class="emoji">✨</span> Transformar
+        </button>
+        <button id="clearBtn" class="btn-secondary">
+          <span class="emoji">🗑️</span> Limpiar
+        </button>
+      </div>
+    </section>
+
+    <section id="loading" class="card loading-card hidden">
+      <div class="loader"></div>
+      <p><span class="emoji">🔮</span> La magia está en proceso...</p>
+      <p id="loadingStatus" class="hint"></p>
+      <div class="progress-bar">
+        <div id="progress-fill" class="progress-fill"></div>
+      </div>
+    </section>
+
+    <section id="result" class="card result-card hidden">
+      <div class="result-header">
+        <h2>🎉 Resultado</h2>
+        <div class="result-actions">
+          <button id="copyBtn" class="btn-icon" title="Copiar">
+            <span class="emoji">📋</span>
+          </button>
+          <button id="downloadBtn" class="btn-icon" title="Descargar .txt">
+            <span class="emoji">💾</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="outputContent" class="output-content"></div>
+
+      <div id="scoreContainer" class="score-container hidden">
+        <div class="score-circle" id="scoreCircle">
+          <span id="scoreValue">0</span>%
+        </div>
+        <p class="score-label">✨ Calidad de transformación</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>
+      <span class="emoji">🔮</span>
+      Hecho con magia y código •
+      <a href="https://console.groq.com" target="_blank" rel="noopener">Groq API</a>
+      <span class="emoji wave">🌙</span><span class="emoji wave">✨</span><span class="emoji wave">🔮</span>
+    </p>
+  </footer>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>

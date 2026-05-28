@@ -1,0 +1,9 @@
+{
+  "app_name": "TextMagic AI",
+  "app_emoji": "✨",
+  "api_model": "llama-3.3-70b-versatile",
+  "temperature": 0.3,
+  "max_tokens": 4000,
+  "parametros_especificos": "Experto en formateo y estructuración de Markdown profesional",
+  "theme": "dark"
+}
