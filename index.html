@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tutor de Informática</title>
+    <title>Tutor de Electricidad</title>
     <style>
         body { font-family: system-ui, sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem; background: #f9f9f9; color: #333; }
         h1 { text-align: center; font-size: 1.5rem; }
@@ -14,10 +14,10 @@
     </style>
 </head>
 <body>
-    <h1>🖥️ Tutor de Informática</h1>
+    <h1>⚡ Tutor de Electricidad</h1>
     
     <input type="password" id="apiKey" placeholder="Pega aquí tu API Key de Groq">
-    <textarea id="pregunta" rows="4" placeholder="Escribe tu duda de informática aquí..."></textarea>
+    <textarea id="pregunta" rows="4" placeholder="Escribe tu duda sobre electricidad aquí..."></textarea>
     <button onclick="preguntar()">Preguntar</button>
     
     <h3>Respuesta:</h3>
@@ -36,7 +36,7 @@
 
             resultadoDiv.innerText = "Procesando...";
 
-            const systemPrompt = `Actúa como un guía tutor de informática para enseñar informática desde 0.0 novato, usa medios y fuentes confiables`;
+            const systemPrompt = `Actúa como un guía tutor de electricidad para enseñar electricidad desde 0.0 novato, usa medios y fuentes confiables`;
 
             try {
                 const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -46,7 +46,7 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        model: 'groq/compound',
+                        model: 'llama-3.1-8b-instant',
                         messages: [
                             { role: 'system', content: systemPrompt },
                             { role: 'user', content: pregunta }
